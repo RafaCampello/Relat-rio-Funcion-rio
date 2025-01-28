@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Funcionários</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            color: #333;
+            margin-top: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 8px 12px;
+            text-align: left;
+            border: 1px solid #ccc;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .form-container {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-container input, .form-container select {
+            padding: 8px;
+            margin: 5px;
+            font-size: 14px;
+        }
+
+        #dadosRegistrados {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Relatório de Funcionários</h1>
+
+    <!-- Formulário para adicionar dados -->
+    <div class="form-container">
+        <h2>Adicionar Funcionário</h2>
+        <form id="formFuncionario">
+            <input type="text" id="nome" placeholder="Nome" required>
+            <input type="text" id="funcao" placeholder="Função" required>
+            <input type="text" id="quarto" placeholder="Quarto" required>
+            <input type="date" id="dataAdmissao" required>
+            <input type="date" id="dataDemissao">
+            <select id="situacao" required>
+                <option value="Ativo">Ativo</option>
+                <option value="Desativado">Desativado</option>
+            </select>
+            <select id="alojamento" required>
+                <option value="Sede da Fazenda">Sede da Fazenda</option>
+                <option value="Oficina">Oficina</option>
+                <option value="Cantina">Cantina</option>
+                <option value="Suítes">Suítes</option>
+            </select>
+            <input type="text" id="chefeSeção" placeholder="Chefe de Seção" required>
+            <button type="submit">Adicionar Funcionário</button>
+        </form>
+    </div>
+
+    <div id="container">
+        <div class="alojamento" id="sede-fazenda">
+            <h2>Alojamento Sede da Fazenda</h2>
+            <table id="table-sede">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Função</th>
+                        <th>Quarto</th>
+                        <th>Data de Admissão</th>
+                        <th>Data de Demissão</th>
+                        <th>Situação</th>
+                        <th>Chefe de Seção</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dados dos funcionários serão adicionados aqui -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="alojamento" id="oficina">
+            <h2>Alojamento Oficina</h2>
+            <table id="table-oficina">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Função</th>
+                        <th>Quarto</th>
+                        <th>Data de Admissão</th>
+                        <th>Data de Demissão</th>
+                        <th>Situação</th>
+                        <th>Chefe de Seção</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dados dos funcionários serão adicionados aqui -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="alojamento" id="cantina">
+            <h2>Alojamento Cantina</h2>
+            <table id="table-cantina">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Função</th>
+                        <th>Quarto</th>
+                        <th>Data de Admissão</th>
+                        <th>Data de Demissão</th>
+                        <th>Situação</th>
+                        <th>Chefe de Seção</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dados dos funcionários serão adicionados aqui -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="alojamento" id="suites">
+            <h2>Suítes</h2>
+            <table id="table-suites">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Função</th>
+                        <th>Quarto</th>
+                        <th>Data de Admissão</th>
+                        <th>Data de Demissão</th>
+                        <th>Situação</th>
+                        <th>Chefe de Seção</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dados dos funcionários serão adicionados aqui -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="dadosRegistrados">
+        <h2>Funcionários Registrados</h2>
+        <p>Após adicionar os funcionários, seus dados aparecerão aqui!</p>
+    </div>
+
+    <button id="generatePDF">Gerar PDF</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const funcionarios = [];
+
+            // Função para formatar a data no formato "Dia Mês Ano"
+            function formatarData(data) {
+                const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+                const partes = data.split('-');
+                const dia = partes[2];
+                const mes = meses[parseInt(partes[1], 10) - 1];
+                const ano = partes[0];
+                return `${dia} de ${mes} de ${ano}`;
+            }
+
+            // Função para adicionar dados nas tabelas e exibir na tela
+            function adicionarDados() {
+                funcionarios.forEach(funcionario => {
+                    const tabela = document.querySelector(`#table-${funcionario.alojamento.toLowerCase().replace(' ', '-')}`);
+                    const linha = document.createElement('tr');
+
+                    linha.innerHTML = `
+                        <td>${funcionario.nome}</td>
+                        <td>${funcionario.funcao}</td>
+                        <td>${funcionario.quarto}</td>
+                        <td>${formatarData(funcionario.dataAdmissao)}</td>
+                        <td>${funcionario.dataDemissao ? formatarData(funcionario.dataDemissao) : 'Ainda na empresa'}</td>
+                        <td>${funcionario.situacao}</td>
+                        <td>${funcionario.chefeSeção}</td>
+                    `;
+
+                    tabela.querySelector('tbody').appendChild(linha);
+                });
+
+                // Exibir os dados registrados na interface
+                const dadosContainer = document.getElementById('dadosRegistrados');
+                dadosContainer.innerHTML = `
+                    <h2>Funcionários Registrados</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Função</th>
+                                <th>Quarto</th>
+                                <th>Data de Admissão</th>
+                                <th>Data de Demissão</th>
+                                <th>Situação</th>
+                                <th>Chefe de Seção</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${funcionarios.map(funcionario => `
+                                <tr>
+                                    <td>${funcionario.nome}</td>
+                                    <td>${funcionario.funcao}</td>
+                                    <td>${funcionario.quarto}</td>
+                                    <td>${formatarData(funcionario.dataAdmissao)}</td>
+                                    <td>${funcionario.dataDemissao ? formatarData(funcionario.dataDemissao) : 'Ainda na empresa'}</td>
+                                    <td>${funcionario.situacao}</td>
+                                    <td>${funcionario.chefeSeção}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            // Função para gerar o PDF
+            document.getElementById('generatePDF').addEventListener('click', function() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+                doc.setFontSize(16);
+                doc.text('Relatório de Funcionários', 14, 20);
+
+                // Definir as colunas para o PDF
+                const colunas = ['Nome', 'Função', 'Quarto', 'Data de Admissão', 'Data de Demissão', 'Situação', 'Chefe de Seção'];
+                const dados = funcionarios.map(funcionario => [
+                    funcionario.nome,
+                    funcionario.funcao,
+                    funcionario.quarto,
+                    formatarData(funcionario.dataAdmissao),
+                    funcionario.dataDemissao ? formatarData(funcionario.dataDemissao) : 'Ainda na empresa',
+                    funcionario.situacao,
+                    funcionario.chefeSeção
+                ]);
+
+                // Título das colunas
+                doc.autoTable({
+                    head: [colunas],
+                    body: dados,
+                    startY: 30, // Início após o título
+                    theme: 'grid',
+                    margin: { horizontal: 10 },
+                    bodyStyles: { valign: 'middle', fontSize: 10 },
+                });
+
+                doc.save('relatorio_funcionarios.pdf');
+            });
+
+            // Função para adicionar funcionário ao array e atualizar a tabela
+            document.getElementById('formFuncionario').addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const nome = document.getElementById('nome').value;
+                const funcao = document.getElementById('funcao').value;
+                const quarto = document.getElementById('quarto').value;
+                const dataAdmissao = document.getElementById('dataAdmissao').value;
+                const dataDemissao = document.getElementById('dataDemissao').value;
+                const situacao = document.getElementById('situacao').value;
+                const alojamento = document.getElementById('alojamento').value;
+                const chefeSeção = document.getElementById('chefeSeção').value;
+
+                const funcionario = {
+                    nome,
+                    funcao,
+                    quarto,
+                    dataAdmissao,
+                    dataDemissao,
+                    situacao,
+                    alojamento,
+                    chefeSeção
+                };
+
+                funcionarios.push(funcionario);
+
+                // Limpar os campos do formulário
+                document.getElementById('formFuncionario').reset();
+
+                // Atualizar a tabela e mostrar os dados registrados
+                adicionarDados();
+            });
+
+        });
+    </script>
+
+</body>
+</html>

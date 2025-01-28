@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Funcionário</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin: 10px 0 5px;
+            color: #555;
+        }
+
+        input, select {
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: #f9f9f9;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sede {
+            background-color: #e3f2fd;
+        }
+
+        .oficina {
+            background-color: #f1f8e9;
+        }
+
+        .cantina {
+            background-color: #fff3e0;
+        }
+
+        .suites {
+            background-color: #fce4ec;
+        }
+
+        .btnExcluir {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .btnExcluir:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="container" id="container">
+        <h1>Cadastro de Funcionário</h1>
+        <form id="formCadastro">
+            <label for="nome">Nome do Funcionário:</label>
+            <input type="text" id="nome" name="nome" required>
+
+            <label for="alojamento">Alojamento:</label>
+            <select id="alojamento" name="alojamento" required>
+                <option value="sede">Sede</option>
+                <option value="oficina">Oficina</option>
+                <option value="cantina">Cantina</option>
+                <option value="suites">Suítes</option>
+            </select>
+
+            <label for="quarto">Número do Quarto:</label>
+            <select id="quarto" name="quarto" required>
+                <!-- Opções de quartos serão preenchidas via JavaScript -->
+            </select>
+
+            <label for="sessao">Sessão de Trabalho:</label>
+            <input type="text" id="sessao" name="sessao" required>
+
+            <label for="funcao">Função Exercida:</label>
+            <input type="text" id="funcao" name="funcao" required>
+
+            <button type="submit">Cadastrar</button>
+            <button type="button" id="btnLimpar">Limpar Campos</button>
+        </form>
+
+        <h2>Funcionários Cadastrados</h2>
+        <ul id="listaFuncionarios"></ul>
+
+        <button id="btnImprimir" style="display: none;">Imprimir em PDF</button>
+    </div>
+
+    <script>
+        // Definindo os alojamentos e o número de quartos
+        const alojamentos = {
+            sede: { total: 20, quartos: Array.from({ length: 20 }, (_, i) => i + 1) },
+            oficina: { total: 15, quartos: Array.from({ length: 15 }, (_, i) => i + 1) },
+            cantina: { total: 8, quartos: Array.from({ length: 8 }, (_, i) => i + 1) },
+            suites: { total: 10, quartos: Array.from({ length: 10 }, (_, i) => i + 1) },
+        };
+
+        // Variável para armazenar o funcionário que está sendo editado
+        let funcionarioEditando = null;
+
+        // Função para carregar os quartos com base no alojamento selecionado
+        function carregarQuartos() {
+            const alojamentoSelecionado = document.getElementById('alojamento').value;
+            const quartosSelect = document.getElementById('quarto');
+            quartosSelect.innerHTML = ''; // Limpa a lista de quartos antes de preencher
+
+            const quartos = alojamentos[alojamentoSelecionado].quartos;
+
+            quartos.forEach(quarto => {
+                const option = document.createElement('option');
+                option.value = quarto;
+                option.textContent = `Quarto ${quarto}`;
+                quartosSelect.appendChild(option);
+            });
+
+            // Altera a cor de fundo do container conforme o alojamento
+            document.getElementById('container').className = alojamentoSelecionado;
+        }
+
+        // Função para carregar os dados salvos no localStorage
+        function carregarFuncionarios() {
+            const funcionarios = JSON.parse(localStorage.getItem('funcionarios')) || [];
+            const listaFuncionarios = document.getElementById('listaFuncionarios');
+            listaFuncionarios.innerHTML = '';
+            funcionarios.forEach((f, index) => {
+                const li = document.createElement('li');
+                li.textContent = `Nome: ${f.nome}, Alojamento: ${f.alojamento}, Quarto: ${f.quarto}, Sessão: ${f.sessao}, Função: ${f.funcao}`;
+                
+                // Criando o botão de excluir
+                const btnExcluir = document.createElement('button');
+                btnExcluir.classList.add('btnExcluir');
+                btnExcluir.textContent = 'Excluir';
+                btnExcluir.onclick = () => excluirFuncionario(index);
+                li.appendChild(btnExcluir);
+
+                // Adicionando evento de editar
+                li.onclick = () => editarFuncionario(f, index);
+
+                listaFuncionarios.appendChild(li);
+            });
+        }
+
+        // Função para editar o funcionário
+        function editarFuncionario(funcionario, index) {
+            document.getElementById('nome').value = funcionario.nome;
+            document.getElementById('alojamento').value = funcionario.alojamento;
+            document.getElementById('quarto').value = funcionario.quarto;
+            document.getElementById('sessao').value = funcionario.sessao;
+            document.getElementById('funcao').value = funcionario.funcao;
+
+            funcionarioEditando = { ...funcionario, index }; // Armazenar o funcionário sendo editado
+            carregarQuartos(); // Atualiza os quartos conforme o alojamento
+        }
+
+        // Função para excluir o funcionário
+        function excluirFuncionario(index) {
+            const funcionarios = JSON.parse(localStorage.getItem('funcionarios')) || [];
+            funcionarios.splice(index, 1);
+            localStorage.setItem('funcionarios', JSON.stringify(funcionarios));
+            carregarFuncionarios(); // Atualiza a lista após a exclusão
+        }
+
+        // Função para gerar o PDF com as informações do funcionário
+        function gerarPDF(funcionario) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.text(`Nome: ${funcionario.nome}`, 10, 10);
+            doc.text(`Alojamento: ${funcionario.alojamento}`, 10, 20);
+            doc.text(`Quarto: ${funcionario.quarto}`, 10, 30);
+            doc.text(`Sessão: ${funcionario.sessao}`, 10, 40);
+            doc.text(`Função: ${funcionario.funcao}`, 10, 50);
+
+            doc.save(`funcionario_${funcionario.nome}.pdf`);
+        }
+
+        // Ao submeter o formulário
+        document.getElementById('formCadastro').addEventListener('submit', function(event) {
+            event.preventDefault(); // Impede o envio do formulário
+
+            const nome = document.getElementById('nome').value;
+            const alojamento = document.getElementById('alojamento').value;
+            const quarto = document.getElementById('quarto').value;
+            const sessao = document.getElementById('sessao').value;
+            const funcao = document.getElementById('funcao').value;
+
+            // Cria um objeto para o novo funcionário
+            const novoFuncionario = {
+                nome: nome,
+                alojamento: alojamento,
+                quarto: quarto,
+                sessao: sessao,
+                funcao: funcao
+            };
+
+            let funcionarios = JSON.parse(localStorage.getItem('funcionarios')) || [];
+
+            if (funcionarioEditando) {
+                // Editando o funcionário
+                funcionarios[funcionarioEditando.index] = novoFuncionario;
+                funcionarioEditando = null;
+            } else {
+                // Adicionando um novo funcionário
+                funcionarios.push(novoFuncionario);
+            }
+
+            // Salva os funcionários no localStorage
+            localStorage.setItem('funcionarios', JSON.stringify(funcionarios));
+
+            // Limpa os campos do formulário
+            document.getElementById('formCadastro').reset();
+
+            // Recarrega a lista de funcionários cadastrados
+            carregarFuncionarios();
+
+            // Exibe o botão para imprimir o PDF
+            document.getElementById('btnImprimir').style.display = 'inline-block';
+
+            // Adiciona o evento para o botão de imprimir
+            document.getElementById('btnImprimir').onclick = function() {
+                gerarPDF(novoFuncionario);
+            };
+        });
+
+        // Função para limpar os campos
+        document.getElementById('btnLimpar').addEventListener('click', function() {
+            document.getElementById('formCadastro').reset();
+            funcionarioEditando = null; // Limpar a edição
+        });
+
+        // Inicializa a página com a lista de funcionários e a seleção de quartos
+        window.onload = function() {
+            carregarFuncionarios();
+            carregarQuartos(); // Carregar os quartos inicialmente
+
+            // Atualiza os quartos ao mudar o alojamento
+            document.getElementById('alojamento').addEventListener('change', carregarQuartos);
+        };
+    </script>
+</body>
+</html>
