@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestão de Funcionários</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --background-color: #f5f6fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: var(--background-color);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), #34495e);
+        }
+
+        .auth-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            width: 300px;
+        }
+
+        header {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .search-box {
+            margin-bottom: 1rem;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .employee-list {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .employee-card {
+            padding: 1rem;
+            margin: 0.5rem 0;
+            background: #f8f9fa;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .employee-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .status-dot {
+            height: 10px;
+            width: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .active { background: var(--success-color); }
+        .inactive { background: var(--danger-color); }
+
+        .employee-details {
+            flex-grow: 1;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .primary-btn {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .danger-btn {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .documents-list {
+            margin-top: 1rem;
+        }
+
+        .document-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="authScreen" class="auth-container">
+        <div class="auth-box">
+            <h2>Login</h2>
+            <input type="text" id="username" placeholder="Usuário">
+            <input type="password" id="password" placeholder="Senha">
+            <button onclick="login()">Acessar</button>
+        </div>
+    </div>
+
+    <div id="appContainer" class="hidden">
+        <header>
+            <h1>Gestão de Funcionários</h1>
+            <div class="header-controls">
+                <button onclick="showExportOptions()"><i class="fas fa-file-export"></i> Exportar</button>
+                <button onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</button>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="sidebar">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Pesquisar funcionário...">
+                    <select id="filterStatus">
+                        <option value="all">Todos</option>
+                        <option value="active">Ativos</option>
+                        <option value="inactive">Inativos</option>
+                    </select>
+                </div>
+                <div id="employeeList" class="employee-list"></div>
+                <button class="add-button primary-btn" onclick="showAddEmployeeForm()"><i class="fas fa-plus"></i> Novo Funcionário</button>
+            </div>
+
+            <div id="employeeDetails" class="employee-details hidden"></div>
+        </div>
+
+        <div id="confirmationModal" class="modal hidden">
+            <div class="modal-content">
+                <p id="modalMessage"></p>
+                <button class="primary-btn" onclick="confirmAction(true)">Confirmar</button>
+                <button class="danger-btn" onclick="confirmAction(false)">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sistema de Autenticação
+        const users = [
+            { username: 'admin', password: 'admin123', role: 'admin' },
+            { username: 'user', password: 'user123', role: 'user' }
+        ];
+
+        let currentUser = null;
+        let employees = JSON.parse(localStorage.getItem('employees')) || [];
+        let currentEmployee = null;
+        let pendingAction = null;
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if(user) {
+                currentUser = user;
+                document.getElementById('authScreen').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('hidden');
+                loadEmployees();
+            } else {
+                alert('Credenciais inválidas!');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('authScreen').classList.remove('hidden');
+            document.getElementById('appContainer').classList.add('hidden');
+        }
+
+        // Funcionalidades Principais
+        function generateEmployeeId() {
+            return 'EMP-' + Date.now().toString(36).toUpperCase();
+        }
+
+        function loadEmployees() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filterStatus = document.getElementById('filterStatus').value;
+            
+            let filtered = employees.filter(e => {
+                const matchesSearch = e.name.toLowerCase().includes(searchTerm) || 
+                                    e.role.toLowerCase().includes(searchTerm) ||
+                                    e.employeeId.includes(searchTerm);
+                const matchesStatus = filterStatus === 'all' || e.status === filterStatus;
+                return matchesSearch && matchesStatus;
+            });
+            
+            filtered.sort((a, b) => a.name.localeCompare(b.name));
+            renderEmployeeList(filtered);
+        }
+
+        function renderEmployeeList(employees) {
+            const list = document.getElementById('employeeList');
+            list.innerHTML = '';
+            
+            employees.forEach(employee => {
+                const div = document.createElement('div');
+                div.className = 'employee-card';
+                div.innerHTML = `
+                    <div>
+                        <strong>${employee.name}</strong>
+                        <div class="role">${employee.role}</div>
+                    </div>
+                    <div class="status-dot ${employee.status}"></div>
+                `;
+                div.onclick = () => showEmployeeDetails(employee.id);
+                list.appendChild(div);
+            });
+        }
+
+        function showAddEmployeeForm() {
+            currentEmployee = null;
+            renderEmployeeForm({
+                id: generateEmployeeId(),
+                status: 'active',
+                admissionDate: new Date().toISOString().split('T')[0]
+            });
+        }
+
+        function showEmployeeDetails(id) {
+            currentEmployee = employees.find(e => e.id === id);
+            if(currentEmployee) {
+                renderEmployeeForm(currentEmployee);
+            }
+        }
+
+        function renderEmployeeForm(employee) {
+            const details = document.getElementById('employeeDetails');
+            details.innerHTML = `
+                <div class="form-header">
+                    <h2>${employee.id ? 'Editar Funcionário' : 'Novo Funcionário'}</h2>
+                    <button class="primary-btn" onclick="saveEmployee()"><i class="fas fa-save"></i> Salvar</button>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Foto do Funcionário</label>
+                        <input type="file" id="employeePhoto" accept="image/*" onchange="previewPhoto(event)">
+                        <img id="photoPreview" src="${employee.photo || '#'}" class="${employee.photo ? '' : 'hidden'}" alt="Foto" style="max-width: 150px; margin-top: 10px;">
+                    </div>
+                    
+                    <div class="form-section">
+                        <h3>Informações Pessoais</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Nome Completo</label>
+                                <input type="text" id="employeeName" value="${employee.name || ''}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Data de Admissão</label>
+                                <input type="date" id="admissionDate" value="${employee.admissionDate || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label>Função/Cargo</label>
+                                <input type="text" id="employeeRole" value="${employee.role || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label>ID do Funcionário</label>
+                                <input type="text" id="employeeId" value="${employee.id}" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Informações Adicionais</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>ID do Cartão Refeição</label>
+                                <input type="text" id="mealCardId" value="${employee.mealCardId || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label>Voucher Internet</label>
+                                <input type="text" id="internetVoucher" value="${employee.internetVoucher || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label>Alojamento/Quarto</label>
+                                <input type="text" id="accommodation" value="${employee.accommodation || ''}">
+                            </div>
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select id="employeeStatus">
+                                    <option value="active" ${employee.status === 'active' ? 'selected' : ''}>Ativo</option>
+                                    <option value="inactive" ${employee.status === 'inactive' ? 'selected' : ''}>Inativo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Documentos e Anexos</h3>
+                        <input type="file" id="documentUpload" multiple onchange="uploadDocuments(event)">
+                        <div class="documents-list">
+                            ${renderDocuments(employee.documents || [])}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="danger-btn" onclick="confirmDismissal()"><i class="fas fa-user-slash"></i> ${employee.status === 'active' ? 'Desligar Funcionário' : 'Reativar Funcionário'}</button>
+                </div>
+            `;
+            
+            details.classList.remove('hidden');
+        }
+
+        function renderDocuments(documents) {
+            return documents.map(doc => `
+                <div class="document-item">
+                    <span>${doc.name}</span>
+                    <a href="${doc.url}" download><i class="fas fa-download"></i></a>
+                </div>
+            `).join('');
+        }
+
+        function uploadDocuments(event) {
+            const files = event.target.files;
+            const documents = Array.from(files).map(file => ({
+                name: file.name,
+                url: URL.createObjectURL(file),
+                type: file.type
+            }));
+            
+            if(currentEmployee) {
+                currentEmployee.documents = [...(currentEmployee.documents || []), ...documents];
+                saveEmployee();
+            }
+        }
+
+        function previewPhoto(event) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('photoPreview');
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                if(currentEmployee) {
+                    currentEmployee.photo = e.target.result;
+                }
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function validateForm() {
+            const name = document.getElementById('employeeName').value.trim();
+            if(name.length < 3) {
+                alert('Nome deve ter pelo menos 3 caracteres');
+                return false;
+            }
+            return true;
+        }
+
+        function saveEmployee() {
+            if(!validateForm()) return;
+
+            const employee = {
+                id: document.getElementById('employeeId').value,
+                name: document.getElementById('employeeName').value,
+                role: document.getElementById('employeeRole').value,
+                admissionDate: document.getElementById('admissionDate').value,
+                mealCardId: document.getElementById('mealCardId').value,
+                internetVoucher: document.getElementById('internetVoucher').value,
+                accommodation: document.getElementById('accommodation').value,
+                status: document.getElementById('employeeStatus').value,
+                photo: currentEmployee?.photo || '',
+                documents: currentEmployee?.documents || []
+            };
+
+            const index = employees.findIndex(e => e.id === employee.id);
+            if(index > -1) {
+                employees[index] = employee;
+            } else {
+                employees.push(employee);
+            }
+
+            localStorage.setItem('employees', JSON.stringify(employees));
+            loadEmployees();
+            document.getElementById('employeeDetails').classList.add('hidden');
+        }
+
+        function confirmDismissal() {
+            showConfirmationModal(
+                `Tem certeza que deseja ${currentEmployee.status === 'active' ? 'desligar' : 'reativar'} este funcionário?`,
+                () => {
+                    currentEmployee.status = currentEmployee.status === 'active' ? 'inactive' : 'active';
+                    saveEmployee();
+                }
+            );
+        }
+
+        function showConfirmationModal(message, callback) {
+            pendingAction = callback;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('confirmationModal').classList.remove('hidden');
+        }
+
+        function confirmAction(confirmed) {
+            document.getElementById('confirmationModal').classList.add('hidden');
+            if(confirmed && pendingAction) {
+                pendingAction();
+            }
+            pendingAction = null;
+        }
+
+        function showExportOptions() {
+            const data = JSON.stringify(employees, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'funcionarios.json';
+            a.click();
+        }
+
+        // Event Listeners
+        document.getElementById('searchInput').addEventListener('input', loadEmployees);
+        document.getElementById('filterStatus').addEventListener('change', loadEmployees);
+
+        // Inicialização
+        if(localStorage.getItem('employees')) {
+            loadEmployees();
+        }
+    </script>
+</body>
+</html>
